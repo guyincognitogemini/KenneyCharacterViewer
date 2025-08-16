@@ -11,7 +11,7 @@ const modelFiles = [
 ];
 
 function Model({ modelName, animationName, onAnimationsLoaded, turntable, isInteracting }) {
-  const { scene, animations } = useGLTF(`/models-draco/${modelName}.glb`, true);
+  const { scene, animations } = useGLTF(`models-draco/${modelName}.glb`, true);
   const { actions, names } = useAnimations(animations, scene);
 
   useEffect(() => {
