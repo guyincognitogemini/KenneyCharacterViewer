@@ -1,7 +1,7 @@
 import React, { Suspense, useState, useEffect, useCallback, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, useGLTF, useAnimations } from '@react-three/drei';
-import { Box, FormControl, InputLabel, Select, MenuItem, Switch, FormControlLabel } from '@mui/material';
+import { Box, FormControl, InputLabel, Select, MenuItem, Switch, FormControlLabel, Paper, useTheme, useMediaQuery } from '@mui/material';
 
 const modelFiles = [
   'character-a', 'character-b', 'character-c', 'character-d', 'character-e',
@@ -34,6 +34,125 @@ function Model({ modelName, animationName, onAnimationsLoaded, turntable, isInte
   return <primitive object={scene} />;
 }
 
+function Controls({
+  selectedModel,
+  handleModelChange,
+  animations,
+  selectedAnimation,
+  handleAnimationChange,
+  turntable,
+  setTurntable,
+}) {
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+
+  if (isDesktop) {
+    return (
+      <Paper
+        elevation={3}
+        sx={{
+          position: 'absolute',
+          zIndex: 10,
+          top: 16,
+          left: 16,
+          width: 300,
+          padding: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        }}
+      >
+        <FormControl fullWidth>
+          <InputLabel id="model-select-label">Character</InputLabel>
+          <Select
+            labelId="model-select-label"
+            value={selectedModel}
+            label="Character"
+            onChange={handleModelChange}
+          >
+            {modelFiles.map(modelName => (
+              <MenuItem key={modelName} value={modelName}>{modelName}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        {animations.length > 0 && (
+          <FormControl fullWidth>
+            <InputLabel id="animation-select-label">Animation</InputLabel>
+            <Select
+              labelId="animation-select-label"
+              value={selectedAnimation}
+              label="Animation"
+              onChange={handleAnimationChange}
+            >
+              {animations.map(name => (
+                <MenuItem key={name} value={name}>{name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+        <FormControlLabel
+          control={<Switch checked={turntable} onChange={(e) => setTurntable(e.target.checked)} />}
+          label="Turntable"
+        />
+      </Paper>
+    );
+  }
+
+  return (
+    <Paper
+      elevation={3}
+      sx={{
+        position: 'absolute',
+        zIndex: 10,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        padding: 1,
+        display: 'flex',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        gap: 1,
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        borderTop: '1px solid #ddd',
+      }}
+    >
+      <FormControl variant="standard" sx={{ minWidth: 120 }}>
+        <InputLabel id="model-select-label-mobile">Character</InputLabel>
+        <Select
+          labelId="model-select-label-mobile"
+          value={selectedModel}
+          onChange={handleModelChange}
+        >
+          {modelFiles.map(modelName => (
+            <MenuItem key={modelName} value={modelName}>{modelName}</MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+      {animations.length > 0 && (
+        <FormControl variant="standard" sx={{ minWidth: 120 }}>
+          <InputLabel id="animation-select-label-mobile">Animation</InputLabel>
+          <Select
+            labelId="animation-select-label-mobile"
+            value={selectedAnimation}
+            onChange={handleAnimationChange}
+          >
+            {animations.map(name => (
+              <MenuItem key={name} value={name}>{name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      )}
+      <FormControlLabel
+        control={<Switch checked={turntable} onChange={(e) => setTurntable(e.target.checked)} size="small" />}
+        label="Turntable"
+        sx={{ mr: 0 }}
+      />
+    </Paper>
+  );
+}
+
+
 function App() {
   const [selectedModel, setSelectedModel] = useState(modelFiles[0]);
   const [animations, setAnimations] = useState([]);
@@ -54,10 +173,10 @@ function App() {
 
   const handleAnimationsLoaded = useCallback((animationNames) => {
     setAnimations(animationNames);
-    if (animationNames.length > 0) {
+    if (animationNames.length > 0 && !selectedAnimation) {
       setSelectedAnimation(animationNames[0]);
     }
-  }, []);
+  }, [selectedAnimation]);
 
   useEffect(() => {
     const controls = controlsRef.current;
@@ -75,69 +194,15 @@ function App() {
 
   return (
     <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Box
-        sx={{
-          position: 'absolute',
-          zIndex: 10,
-          background: 'rgba(255, 255, 255, 0.8)',
-          padding: 2,
-          borderRadius: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2,
-          // Mobile-first styles
-          bottom: 16,
-          left: 16,
-          right: 16,
-          // Desktop styles
-          '@media (min-width:600px)': {
-            top: 16,
-            bottom: 'auto',
-            left: 16,
-            right: 'auto',
-            width: '300px',
-          },
-        }}
-      >
-        <FormControl fullWidth>
-          <InputLabel id="model-select-label">Character</InputLabel>
-          <Select
-            labelId="model-select-label"
-            id="model-select"
-            value={selectedModel}
-            label="Character"
-            onChange={handleModelChange}
-          >
-            {modelFiles.map(modelName => (
-              <MenuItem key={modelName} value={modelName}>
-                {modelName}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        {animations.length > 0 && (
-          <FormControl fullWidth>
-            <InputLabel id="animation-select-label">Animation</InputLabel>
-            <Select
-              labelId="animation-select-label"
-              id="animation-select"
-              value={selectedAnimation}
-              label="Animation"
-              onChange={handleAnimationChange}
-            >
-              {animations.map(name => (
-                <MenuItem key={name} value={name}>
-                  {name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )}
-        <FormControlLabel
-          control={<Switch checked={turntable} onChange={(e) => setTurntable(e.target.checked)} />}
-          label="Turntable"
-        />
-      </Box>
+      <Controls
+        selectedModel={selectedModel}
+        handleModelChange={handleModelChange}
+        animations={animations}
+        selectedAnimation={selectedAnimation}
+        handleAnimationChange={handleAnimationChange}
+        turntable={turntable}
+        setTurntable={setTurntable}
+      />
       <Canvas
         frameloop={selectedAnimation || turntable ? 'always' : 'demand'}
         dpr={[1, 2]}
